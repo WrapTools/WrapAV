@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "WrapAV"
+version = "0.1.0"
+description = "Audio_Video library"
+authors = [{ name = "David", email = "dave@chatrecall.com" }]
+dependencies = [
+    "requests>=2.32.3",
+    "pipdeptree==2.24.0",
+    "pydub==0.25.1",
+]
+
+[tool.setuptools]
+packages = ["WrapAV"]
+package-dir = {"" = "src"}
+include-package-data = true
