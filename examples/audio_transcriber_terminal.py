@@ -16,12 +16,15 @@ logger = logging.getLogger(__name__)
 
 from WrapAV import AudioTranscriber
 from WrapAV import MediaFileInfo
+from secret_loader import load_secret
 
 
 def main():
     print("=== Audio Transcriber ===")
     audio_file_path_str = input("Enter the path of the audio file to convert: ").strip()
     audio_file_path = Path(audio_file_path_str)
+
+    open_api_key = load_secret("OPENAI_API_KEY")
 
     try:
         # Output file type and codec info
@@ -31,7 +34,7 @@ def main():
         print(f"File Type: {audio_file_path.suffix.lower().lstrip('.')}")
 
         # Ensure you pass a Path object instead of a string
-        transcriber = AudioTranscriber()
+        transcriber = AudioTranscriber(api_key=open_api_key)
         transcribed_text = transcriber.transcribe_audio(audio_file_path, time_stamps=True)
         print(f"Transcribed data: {transcribed_text}")
 

@@ -3,6 +3,7 @@
 import io
 import requests
 from pathlib import Path
+
 from pydub import AudioSegment
 from .av_info import MediaFileInfo
 from .av_split_combine import AudioSplitter  # Assuming we have the AudioSplitter class
@@ -13,7 +14,7 @@ import logging
 # Logger Configuration
 logger = logging.getLogger(__name__)
 
-from WrapConfig import SecretsManager
+# from WrapConfig import SecretsManager
 
 SUPPORTED_FORMATS = ['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'wav', 'webm', 'amr']
 SUPPORTED_AUDIO = ['mp3', 'wav']
@@ -38,11 +39,12 @@ class UnsupportedAudioFormatError(Exception):
 
 
 class AudioTranscriber:
-    def __init__(self):
+    def __init__(self, api_key):
         """
         Initializes the AudioTranscriber with the necessary runtime settings and FFmpeg path.
         """
         self.memory_file = io.BytesIO()
+        self.api_key = api_key
 
         ffmpeg_path, _ = get_ffmpeg_paths()  # Use the get_ffmpeg_paths utility
         if ffmpeg_path.exists():
@@ -50,24 +52,6 @@ class AudioTranscriber:
             logger.info(f"FFmpeg path set to: {ffmpeg_path}")
         else:
             raise FileNotFoundError(f"FFmpeg not found at {ffmpeg_path}. Please verify the path.")
-
-    def load_api_key(self):
-        """
-        Loads the API key from the secrets file (e.g., .env).
-        """
-        try:
-            # Initialize SecretsManager to load secrets from the .env file
-            secrets_manager = SecretsManager(".env")
-            api_key = secrets_manager.get_secret('OPENAI_API_KEY')  # Assuming the key is stored as OPENAI_API_KEY in .env
-            if api_key:
-                logger.info("API key loaded successfully.")
-                return api_key
-            else:
-                logger.error("API key not found in secrets file.")
-                return None
-        except Exception as e:
-            logger.error(f"Failed to load API key from secrets file: {e}")
-            return None
 
     def load_file_to_memory(self, file_path):
         try:
@@ -159,13 +143,8 @@ class AudioTranscriber:
             Raises:
                 Exception: If the API key is missing or the transcription fails.
         """
-        api_key = self.load_api_key()
-        if not api_key:
-            logger.error("API key is missing or invalid.")
-            raise Exception("Failed to load API key.")
-
         with open(audio_file_path, 'rb') as audio_file:
-            headers = {'Authorization': f'Bearer {api_key}'}
+            headers = {'Authorization': f'Bearer {self.api_key}'}
             files = {'file': ('audio.mp3', audio_file, 'audio/mpeg')}
             data = {'model': TRANSCRIPTION_MODEL}
 
@@ -260,12 +239,8 @@ class AudioTranscriber:
         """
         Transcribes a single audio file and returns text with timestamps in verbose JSON format.
         """
-        api_key = self.load_api_key()
-        if not api_key:
-            raise Exception("Failed to load API key.")
-
         with open(audio_file_path, 'rb') as audio_file:
-            headers = {'Authorization': f'Bearer {api_key}'}
+            headers = {'Authorization': f'Bearer {self.api_key}'}
             files = {'file': ('audio.mp3', audio_file, 'audio/mpeg')}
             data = {
                 'model': TRANSCRIPTION_MODEL,
